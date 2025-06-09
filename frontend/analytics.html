@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>📊 Patients per Condition</h2>
+  <canvas id="conditionChart" width="400" height="200"></canvas>
+
+  <h2>💊 Most Prescribed Medications</h2>
+  <canvas id="medicationChart" width="400" height="200"></canvas>
+
+  <script>
+    async function fetchAndRender() {
+      try {
+        // 1. Patients per condition
+        const condRes = await fetch('/api/patients/analytics/conditions');
+        const condData = await condRes.json();
+
+        const condLabels = condData.map(item => item._id);
+        const condCounts = condData.map(item => item.count);
+
+        new Chart(document.getElementById('conditionChart'), {
+          type: 'bar',
+          data: {
+            labels: condLabels,
+            datasets: [{
+              label: 'Patients per Condition',
+              data: condCounts,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)'
+            }]
+          }
+        });
+
+        // 2. Most prescribed medications
+        const medRes = await fetch('/api/patients/analytics/prescriptions');
+        const medData = await medRes.json();
+
+        const medLabels = medData.map(item => item._id);
+        const medCounts = medData.map(item => item.count);
+
+        new Chart(document.getElementById('medicationChart'), {
+          type: 'pie',
+          data: {
+            labels: medLabels,
+            datasets: [{
+              label: 'Most Prescribed Medications',
+              data: medCounts,
+              backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56',
+                '#8BC34A', '#9C27B0', '#FF9800'
+              ]
+            }]
+          }
+        });
+      } catch (err) {
+        console.error('Error loading analytics:', err);
+      }
+    }
+
+    fetchAndRender();
+  </script>
+</body>
+</html>
