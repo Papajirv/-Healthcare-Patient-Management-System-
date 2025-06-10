@@ -6,18 +6,11 @@ const path = require("path");
 
 const app = express();
 
-// Static frontend serving
-app.use(express.static(path.join(__dirname, "../frontend")));
-
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Routes
-const patientRoutes = require("./routes/patientRoutes");
-app.use("/api/patients", patientRoutes);
-
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect("mongodb://localhost:27017/patientDB", {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -25,8 +18,21 @@ mongoose.connect("mongodb://localhost:27017/patientDB", {
 .then(() => console.log("✅ Connected to MongoDB"))
 .catch(err => console.error("❌ MongoDB connection error:", err));
 
+// API Routes
+const patientRoutes = require("./routes/patientRoutes");
+app.use("/api/patients", patientRoutes);
+
+// Serve frontend statically
+const frontendPath = path.resolve(__dirname, "../frontend");
+app.use(express.static(frontendPath));
+
+// Optional: fallback route (serve index.html for unknown frontend routes)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });

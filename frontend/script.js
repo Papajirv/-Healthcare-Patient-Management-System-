@@ -1,11 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // pagination and sorting
   let currentPage = 1;
-  let currentSortBy = 'createdAt';  // default sort field
-  let currentSortOrder = 'desc';    // default order
-  const limit = 5;                  // items per page
+  let currentSortBy = 'createdAt';
+  let currentSortOrder = 'desc';
+  const limit = 5;
 
-  //  It is to add patient form submission
+  // Add patient
   document.getElementById('patientForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -31,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (response.ok) {
         alert("Patient added successfully!");
         document.getElementById('patientForm').reset();
-        loadPatients(currentPage);  // reload current page
+        loadPatients(currentPage);
       } else {
         alert("Failed to add patient.");
       }
@@ -41,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Load patients with pagination, sorting and optional search
+  // Load patients (search + pagination + sorting)
   async function loadPatients(page = 1) {
     currentPage = page;
 
@@ -61,12 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await res.json();
 
       const data = result.data;
-
-      if (!Array.isArray(data)) {
-        console.error("Expected array but got:", data);
-        return;
-      }
-
       const tbody = document.getElementById('patient-table-body');
       tbody.innerHTML = '';
 
@@ -78,10 +71,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <td class="border px-2 py-1">${p.age}</td>
           <td class="border px-2 py-1">${p.gender}</td>
           <td class="border px-2 py-1">${p.contact}</td>
-          <td class="border px-2 py-1">${p.allergies || ''}</td>
-          <td class="border px-2 py-1">${p.medicalHistory || ''}</td>
-          <td class="border px-2 py-1">${p.currentPrescriptions || ''}</td>
-          <td class="border px-2 py-1">${p.doctorNotes || ''}</td>
+          <td class="border px-2 py-1">${Array.isArray(p.allergies) ? p.allergies.join(', ') : p.allergies}</td>
+          <td class="border px-2 py-1">${Array.isArray(p.medicalHistory) ? p.medicalHistory.join(', ') : p.medicalHistory}</td>
+          <td class="border px-2 py-1">${Array.isArray(p.currentPrescriptions) ? p.currentPrescriptions.join(', ') : p.currentPrescriptions}</td>
+          <td class="border px-2 py-1">${p.doctorNotes}</td>
           <td class="border px-2 py-1 text-center">
             <button class="delete-btn text-red-600 hover:text-red-800" data-id="${p._id}" title="Delete Patient">🗑️</button>
           </td>
@@ -90,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       setupDeleteButtons();
-
       renderPagination(result.totalPages, currentPage);
 
     } catch (err) {
@@ -98,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Setup delete buttons event listeners
+  // Delete logic
   function setupDeleteButtons() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -123,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Render pagination buttons
+  // Pagination UI
   function renderPagination(totalPages, currentPage) {
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
@@ -140,23 +132,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Search patients function 
-  window.searchPatients = () => {
-    loadPatients(1); //
-  };
-
-  // Sorting change handlers called from index.html onchange attribute
+  // Search + sorting controls
+  window.searchPatients = () => loadPatients(1);
   window.changeSort = (sortBy) => {
     currentSortBy = sortBy;
-    loadPatients(1);  
+    loadPatients(1);
   };
-
   window.changeOrder = (order) => {
     currentSortOrder = order;
-    loadPatients(1);  
+    loadPatients(1);
   };
 
-  // chart rendering
+  // Load analytics chart
   fetch("http://localhost:3000/api/patients/analytics/conditions")
     .then(res => res.json())
     .then(data => {
@@ -184,6 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("Chart loading error:", err));
 
-  
+  // Initial load
   loadPatients(currentPage);
+
+  window.loadPatients = loadPatients;
+
 });
